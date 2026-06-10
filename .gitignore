@@ -1,0 +1,26 @@
+# Python and environment
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.env
+
+# MacOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Data and Outputs (Do not commit patient/raw data)
+data/
+output/
+
+# PDF cache or temp files
+*.tmp
+*.log
+
+# Student Specific Frozen Copy
+Creatine_EEG_analysis/
