@@ -22,5 +22,12 @@ output/
 *.tmp
 *.log
 
+# Documents and Notes
+*.docx
+*.rtf
+*.html
+*.pdf
+~$*
+
 # Student Specific Frozen Copy
 Creatine_EEG_analysis/
