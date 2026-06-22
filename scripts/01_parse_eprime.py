@@ -138,9 +138,8 @@ def main():
 
             if len(participant_row) == 0:
                 print(f"    WARNING: {participant_id} not found in participants.csv")
-                print(f"    Group will be missing — add to participants.csv")
-                df.insert(0, 'task',           task)
-                df.insert(0, 'participant_id', participant_id)
+                print(f"    Skipping this file.")
+                continue
             else:
                 meta = participant_row.iloc[0]
                 df.insert(0, 'task',           task)

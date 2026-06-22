@@ -15,7 +15,7 @@ def cohens_d(a, b):
                 /(na+nb-2))
     return np.nan if s==0 else (np.mean(a)-np.mean(b))/s
 
-def run_tests(a, b, label):
+def run_tests(a, b, label, g1, g2):
     na, nb = len(a), len(b)
     d = cohens_d(a, b)
     if na >= 2 and nb >= 2:
@@ -58,7 +58,7 @@ def run_tests(a, b, label):
                           'large') if not np.isnan(d) else 'n/a',
     }
 
-def print_primary(r, indent='  '):
+def print_primary(r, g1, g2, group_labels, indent='  '):
     print(f"\n{indent}{r['comparison']}")
     print(f"{indent}  {group_labels[g1]:8s} : M={r[f'mean_{g1}']:.3f}  "
           f"SD={r[f'sd_{g1}']:.3f}  N={r[f'n_{g1}']}")
@@ -139,6 +139,21 @@ def get_vals(df, comp, cond, grp, measure):
               (df['condition']==cond) &
               (df['group']==grp)][measure].dropna().values
 
+def load_outliers(task):
+    outliers_file = Path('data/outliers.csv')
+    outlier_pids = {}
+    if outliers_file.exists():
+        df = pd.read_csv(outliers_file)
+        if 'task' in df.columns:
+            df = df[df['task'] == task]
+        for _, row in df.iterrows():
+            pid = row['participant_id']
+            cond = row['condition']
+            if cond not in outlier_pids:
+                outlier_pids[cond] = []
+            outlier_pids[cond].append(pid)
+    return outlier_pids
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', choices=['nback', 'stroop'], required=True)
@@ -163,12 +178,15 @@ def main():
     if participants is not None:
         group_map = dict(zip(participants['participant_id'], participants['group']))
         unique_groups = sorted([g for g in participants['group'].dropna().unique()])
-        g1, g2 = unique_groups if len(unique_groups) == 2 else (g1, g2)
+        g1, g2 = unique_groups if len(unique_groups) == 2 else ('group1', 'group2')
     else:
         group_map = {}
-        g1, g2 = g1, g2
+        g1, g2 = 'group1', 'group2'
         
     groups = [g1, g2]
+    group_labels = {g1: g1.capitalize(), g2: g2.capitalize()}
+
+    OUTLIER_PIDS = load_outliers(task)
 
     if task == 'nback':
         conditions = ['nontarget/correct','target/hit','target/miss']
@@ -176,11 +194,6 @@ def main():
             'nontarget/correct': 'Non-target',
             'target/hit':        'Target hit',
             'target/miss':       'Target miss',
-        }
-        OUTLIER_PIDS = {
-            'target/hit':  ['P08','P05','P06'],
-            'target/miss': ['P08','P07','P03'],
-            'all':         ['P04'],
         }
         primary_components = ['N200','P300','P3b']
         exploratory_components = ['N1','P2','FSW']
@@ -197,23 +210,16 @@ def main():
         behav_eff_lbl = 'Target RT effect (Target − Non-target)'
         behav_eff_cond = 'target-nontarget'
         
-        outlier_exclusions = {
-            'nontarget/correct': ['P04'],
-            'target/hit':        ['P08','P05','P06','P04'],
-            'target/miss':       ['P08','P07','P03','P04'],
-        }
+        outlier_exclusions = {}
+        for cond in conditions:
+            outlier_exclusions[cond] = OUTLIER_PIDS.get(cond, []) + OUTLIER_PIDS.get('all', [])
+
     else:
         conditions = ['congruent/correct','incongruent/correct','no_response']
         cond_labels = {
             'congruent/correct':   'Congruent',
             'incongruent/correct': 'Incongruent',
             'no_response':         'No response',
-        }
-        OUTLIER_PIDS = {
-            'congruent/correct':   ['P03','P05','P08'],
-            'incongruent/correct': ['P03'],
-            'no_response':         ['P03'],
-            'all':                 ['P03'],
         }
         primary_components = ['N200','P300','P3b']
         exploratory_components = ['N1','CSW']
@@ -230,11 +236,9 @@ def main():
         behav_eff_lbl = 'Stroop RT effect (I-C)'
         behav_eff_cond = 'incongruent-congruent'
         
-        outlier_exclusions = {
-            'congruent/correct':   ['P03','P05','P08'],
-            'incongruent/correct': ['P03'],
-            'no_response':         ['P03'],
-        }
+        outlier_exclusions = {}
+        for cond in conditions:
+            outlier_exclusions[cond] = OUTLIER_PIDS.get(cond, []) + OUTLIER_PIDS.get('all', [])
 
     # ── Step 1: Load data ─────────────────────────────────────────────────────────
     print(f"\nSTEP 1: Loading data")
@@ -264,7 +268,7 @@ def main():
                 ctrl   = get_vals(df, comp, cond, g1,  mcol)
                 creat  = get_vals(df, comp, cond, g2, mcol)
                 label  = f"{comp} {measure} — {cond_labels[cond]}"
-                result = run_tests(ctrl, creat, label)
+                result = run_tests(ctrl, creat, label, g1, g2)
                 result['component'] = comp
                 result['condition'] = cond
                 result['measure']   = mcol
@@ -274,7 +278,7 @@ def main():
                     ','.join(sorted(set(p for p in outlier_pids
                                         if p in df['participant_id'].unique())))
                 primary_results.append(result)
-                print_primary(result)
+                print_primary(result, g1, g2, group_labels)
 
     # ── Step 3: PRIMARY — latency statistics ──────────────────────────────────────
     print(f"\n{'='*65}")
@@ -287,7 +291,7 @@ def main():
             ctrl   = get_vals(df, comp, cond, g1,  'peak_lat_ms')
             creat  = get_vals(df, comp, cond, g2, 'peak_lat_ms')
             label  = f"{comp} peak latency — {cond_labels[cond]}"
-            result = run_tests(ctrl, creat, label)
+            result = run_tests(ctrl, creat, label, g1, g2)
             result['component'] = comp
             result['condition'] = cond
             result['measure']   = 'peak_lat_ms'
@@ -297,7 +301,7 @@ def main():
                 ','.join(sorted(set(p for p in outlier_pids
                                     if p in df['participant_id'].unique())))
             primary_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
     # P3b vs P300 divergence
     print(f"\n── P3b vs P300 latency divergence (per participant) ──")
@@ -345,7 +349,7 @@ def main():
                     elif grp==g2: g2_eff.append(eff)
 
             label  = f"{comp} {measure} {effect_label}"
-            result = run_tests(np.array(g1_eff), np.array(g2_eff), label)
+            result = run_tests(np.array(g1_eff), np.array(g2_eff), label, g1, g2)
             result['component'] = comp
             result['condition'] = f'{effect_cond_a}-{effect_cond_b}'.replace('/correct', '').replace('/hit', '')
             result['measure']   = f'{effect_name}_{mcol}'
@@ -357,7 +361,7 @@ def main():
             
             result['outlier_participants_included'] = ','.join(sorted(set(p for p in outlier_pids if p in df['participant_id'].unique())))
             effect_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
             print(f"\n    Individual {effect_name.replace('_', ' ')}s:")
             print(f"    {'PID':5s} {'Group':10s} {'Effect':>10}")
@@ -380,13 +384,13 @@ def main():
         creat = get_vals(df, 'N1', cond, g2, 'mean_amp_uv')
         if len(ctrl)==0 and len(creat)==0: continue
         label  = f"N1 mean amplitude — {cond_labels[cond]}"
-        result = run_tests(ctrl, creat, label)
+        result = run_tests(ctrl, creat, label, g1, g2)
         result['component']='N1'; result['condition']=cond
         result['measure']='mean_amp_uv'
         result['analysis']='all_participants'
         result['outlier_participants_included']=''
         exploratory_results.append(result)
-        print_primary(result)
+        print_primary(result, g1, g2, group_labels)
 
     if task == 'nback':
         # P2 — all conditions
@@ -396,13 +400,13 @@ def main():
             creat = get_vals(df, 'P2', cond, g2, 'mean_amp_uv')
             if len(ctrl)==0 and len(creat)==0: continue
             label  = f"P2 mean amplitude — {cond_labels[cond]}"
-            result = run_tests(ctrl, creat, label)
+            result = run_tests(ctrl, creat, label, g1, g2)
             result['component']='P2'; result['condition']=cond
             result['measure']='mean_amp_uv'
             result['analysis']='all_participants'
             result['outlier_participants_included']=''
             exploratory_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
         # FSW — target/hit only
         print(f"\n── FSW mean amplitude (µV) — target/hit only ──")
@@ -410,13 +414,13 @@ def main():
         creat = get_vals(df, 'FSW', 'target/hit', g2, 'mean_amp_uv')
         if len(ctrl)>0 or len(creat)>0:
             label  = "FSW mean amplitude — Target hit (frontal slow wave)"
-            result = run_tests(ctrl, creat, label)
+            result = run_tests(ctrl, creat, label, g1, g2)
             result['component']='FSW'; result['condition']='target/hit'
             result['measure']='mean_amp_uv'
             result['analysis']='all_participants'
             result['outlier_participants_included']=''
             exploratory_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
     else:
         # CSW — incongruent only
         print(f"\n── CSW mean amplitude (µV) — incongruent only ──")
@@ -424,14 +428,14 @@ def main():
         creat = get_vals(df, 'CSW', 'incongruent/correct', g2, 'mean_amp_uv')
         if len(ctrl)>0 or len(creat)>0:
             label  = "CSW mean amplitude — Incongruent (conflict slow wave)"
-            result = run_tests(ctrl, creat, label)
+            result = run_tests(ctrl, creat, label, g1, g2)
             result['component'] = 'CSW'
             result['condition'] = 'incongruent/correct'
             result['measure']   = 'mean_amp_uv'
             result['analysis']  = 'all_participants'
             result['outlier_participants_included'] = ''
             exploratory_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
     # ── Step 6: BEHAVIOURAL ───────────────────────────────────────────────────────
     print(f"\n{'='*65}")
@@ -470,12 +474,12 @@ def main():
                                   (behav_resp[tt_col]==tt_val) &
                                   (behav_resp[acc_col]==1)
                                  ].groupby('participant_id')[rt_col].mean().values
-            result = run_tests(g1_rt, g2_rt, f"RT — {tt_lbl}")
+            result = run_tests(g1_rt, g2_rt, f"RT — {tt_lbl}", g1, g2)
             result['component']='behaviour'; result['condition']=tt_lbl.lower()
             result['measure']='RT_ms'; result['analysis']='all_participants'
             result['outlier_participants_included']=''
             behav_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
         print(f"\n── {behav_eff_lbl} ──")
         g1_eff, g2_eff = [], []
@@ -487,12 +491,12 @@ def main():
             if not (np.isnan(cond_a) or np.isnan(cond_b)):
                 if grp==g1:    g1_eff.append(cond_a-cond_b)
                 elif grp==g2: g2_eff.append(cond_a-cond_b)
-        result = run_tests(np.array(g1_eff), np.array(g2_eff), behav_eff_lbl)
+        result = run_tests(np.array(g1_eff), np.array(g2_eff), behav_eff_lbl, g1, g2)
         result['component']='behaviour'; result['condition']=behav_eff_cond
         result['measure']='RT_effect_ms'; result['analysis']='all_participants'
         result['outlier_participants_included']=''
         behav_results.append(result)
-        print_primary(result)
+        print_primary(result, g1, g2, group_labels)
 
         print(f"\n── Accuracy ──")
         for tt_lbl, tt_val in behav_conds:
@@ -503,12 +507,12 @@ def main():
             g2_acc = behav_exp[(behav_exp['group']==g2) &
                                   (behav_exp[tt_col]==tt_val)
                                  ].groupby('participant_id')[acc_col].mean().values
-            result = run_tests(g1_acc, g2_acc, f"Accuracy — {tt_lbl}")
+            result = run_tests(g1_acc, g2_acc, f"Accuracy — {tt_lbl}", g1, g2)
             result['component']='behaviour'; result['condition']=tt_lbl.lower()
             result['measure']='accuracy'; result['analysis']='all_participants'
             result['outlier_participants_included']=''
             behav_results.append(result)
-            print_primary(result)
+            print_primary(result, g1, g2, group_labels)
 
         if task == 'nback':
             print(f"\n── N-back load breakdown (RT by list) ──")
@@ -522,12 +526,12 @@ def main():
                                       (behav_resp['ListName']==lst)
                                      ].groupby('participant_id')[rt_col].mean().values
                 if len(g1_rt)==0 and len(g2_rt)==0: continue
-                result = run_tests(g1_rt, g2_rt, f"RT — {lst}")
+                result = run_tests(g1_rt, g2_rt, f"RT — {lst}", g1, g2)
                 result['component']='behaviour'; result['condition']=str(lst)
                 result['measure']='RT_by_load_ms'; result['analysis']='all_participants'
                 result['outlier_participants_included']=''
                 behav_results.append(result)
-                print_primary(result)
+                print_primary(result, g1, g2, group_labels)
 
     primary_results.extend(behav_results)
 
@@ -548,7 +552,7 @@ def main():
                 ctrl    = get_vals(df_sens, comp, cond, g1,  mcol)
                 creat   = get_vals(df_sens, comp, cond, g2, mcol)
                 label   = f"{comp} {measure} — {cond_labels[cond]} (excl {excl})"
-                result  = run_tests(ctrl, creat, label)
+                result  = run_tests(ctrl, creat, label, g1, g2)
                 result['component']        = comp
                 result['condition']        = cond
                 result['measure']          = mcol

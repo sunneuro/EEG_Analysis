@@ -45,6 +45,20 @@ def main():
     print(f"Loaded database: {csv_path.name}")
     print(f"Participants: {sorted(df['participant_id'].unique())} (N={len(df['participant_id'].unique())})")
 
+    # ── Study parameters ──────────────────────────────────────────────────────────
+    participants_file = Path('data/participants.csv')
+    participants      = pd.read_csv(participants_file) if participants_file.exists() else None
+
+    if participants is not None:
+        group_map = dict(zip(participants['participant_id'], participants['group']))
+        unique_groups = sorted([g for g in participants['group'].dropna().unique()])
+        g1, g2 = unique_groups if len(unique_groups) == 2 else ('group1', 'group2')
+    else:
+        group_map = {}
+        g1, g2 = 'group1', 'group2'
+
+    group_labels = {g1: g1.capitalize(), g2: g2.capitalize()}
+
     # ── Analysis Specifications ───────────────────────────────────────────────────
     metrics = [
         {

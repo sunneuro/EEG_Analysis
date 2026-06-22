@@ -22,6 +22,7 @@
       table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; }
       table tr:nth-child(2n) { background-color: #f6f8fa; }
       blockquote { padding: 0 1em; color: #6a737d; border-left: .25em solid #dfe2e5; margin: 0; }
+      img { max-width: 100%; height: auto; page-break-inside: avoid; }
     </style>
     
 </head>
@@ -121,7 +122,7 @@
 1. Press the <strong>Windows key</strong> on your keyboard
 2. Type <code>cmd</code> in the search bar
 3. Click <strong>Command Prompt</strong> in the results
-4. A black window will open with a prompt like <code>C:\Users\SK&gt;</code></p>
+4. A black window will open with a prompt like <code>C:\Users\yourname&gt;</code></p>
 
 <p><strong>Windows — PowerShell (alternative, also works):</strong>
 1. Press the <strong>Windows key</strong>
@@ -132,7 +133,7 @@
 1. Press <strong>Command (⌘) + Space</strong> to open Spotlight search
 2. Type <code>terminal</code>
 3. Press <strong>Enter</strong> or click <strong>Terminal</strong> in the results
-4. A window will open with a prompt like <code>SK@MacBook ~ %</code></p>
+4. A window will open with a prompt like <code>yourname@MacBook ~ %</code></p>
 
 <blockquote>
   <p><strong>Keep this window open</strong> — all commands in this guide are typed here.</p>
@@ -188,14 +189,14 @@
 
 <p><strong>Windows — create and activate:</strong></p>
 
-<pre><code>cd C:\Users\SK\eeg_analysis
+<pre><code>cd C:\Users\yourname\eeg_analysis
 python -m venv .venv
 .venv\Scripts\activate
 </code></pre>
 
 <p><strong>Mac — create and activate:</strong></p>
 
-<pre><code>cd /Users/SK/eeg_analysis
+<pre><code>cd /Users/yourname/eeg_analysis
 python3 -m venv .venv
 source .venv/bin/activate
 </code></pre>
@@ -289,8 +290,8 @@ source .venv/bin/activate
 <p>Download or clone this repository to your computer. Place the folder wherever you want your project to live, for example:</p>
 
 <ul>
-<li><strong>Windows:</strong> <code>C:\Users\SK\eeg_analysis\</code></li>
-<li><strong>Mac:</strong> <code>/Users/SK/eeg_analysis/</code></li>
+<li><strong>Windows:</strong> <code>C:\Users\yourname\eeg_analysis\</code></li>
+<li><strong>Mac:</strong> <code>/Users/yourname/eeg_analysis/</code></li>
 </ul>
 
 <h3 id="step-2-navigate-to-your-project-folder">Step 2 — Navigate to your project folder</h3>
@@ -299,12 +300,12 @@ source .venv/bin/activate
 
 <p><strong>Windows:</strong></p>
 
-<pre><code>cd C:\Users\SK\eeg_analysis
+<pre><code>cd C:\Users\yourname\eeg_analysis
 </code></pre>
 
 <p><strong>Mac:</strong></p>
 
-<pre><code>cd /Users/SK/eeg_analysis
+<pre><code>cd /Users/yourname/eeg_analysis
 </code></pre>
 
 <blockquote>
@@ -530,6 +531,37 @@ data/behavioural/nback/   →  P01_nback.txt  ... P08_nback.txt
 </tbody>
 </table>
 
+<h3 id="64-outlierscsv-data-optional">6.4 outliers.csv — <code>data/</code> (Optional)</h3>
+
+<p>Create an <code>outliers.csv</code> file in the <code>data/</code> directory to explicitly flag specific participants to be excluded from certain conditions during the statistical analysis.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Column</th>
+  <th>Example</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>participant_id</code></td>
+  <td>P01</td>
+  <td>The participant to exclude</td>
+</tr>
+<tr>
+  <td><code>task</code></td>
+  <td>stroop</td>
+  <td>The task (stroop or nback)</td>
+</tr>
+<tr>
+  <td><code>condition</code></td>
+  <td>incongruent/correct</td>
+  <td>The specific condition to exclude them from (or <code>all</code> to exclude from all conditions)</td>
+</tr>
+</tbody>
+</table>
+
 <hr />
 
 <h2 id="7-pipeline-overview">7. Pipeline Overview</h2>
@@ -678,7 +710,36 @@ python3 scripts/03_ica.py P01 nback
 
 <p>Eye blink components show frontal scalp distribution and sharp deflections every few seconds. Muscle artefacts show lateral scalp distributions with high-frequency bursts.</p>
 
-<p><strong>Produces:</strong> Diagnostic plots in <code>output/erp/</code> + <code>data/processed/P01_stroop_ica_raw.fif</code></p>
+<p><img src="example_ica_plot.png" alt="Example ICA Diagnostic Plot" />
+<em>(In this example: <strong>IC00</strong> is a classic eye blink, <strong>IC04</strong> is a muscle artifact with a focal edge, and <strong>IC01/IC03</strong> show typical dipolar brain activity. Eye movements would appear similarly to eye blinks but asymmetric across the frontal channels).</em></p>
+
+<p>The script will pause and prompt you in the terminal to enter your decision based on the ICLabel suggestions and your visual inspection:</p>
+
+<pre><code>============================================================
+STEP 7: YOUR DECISION
+============================================================
+
+Open component figures in Finder to inspect:
+  output/ica/P01_stroop_ica_components_00_05.png
+  output/ica/P01_stroop_ica_components_06_11.png
+  ...
+
+ICLabel automatic suggestion: remove [0, 2, 4, 7, 21]
+
+Reminder - what to look for:
+  Frontal bilateral blob (Fp1/Fp2) = eye blink    -&gt; remove
+  Asymmetric frontal               = eye movement -&gt; remove
+  Focal edge (temporal/frontal)    = muscle       -&gt; consider removing
+  Regular rhythmic pulses          = heartbeat    -&gt; remove
+  Smooth dipolar gradient          = brain        -&gt; keep
+  When in doubt                                   -&gt; keep
+
+Enter the FINAL list of component numbers to remove (comma-separated),
+or press Enter to accept the automatic ICLabel suggestion as-is,
+or type 'none' to remove nothing: 
+</code></pre>
+
+<p><strong>Produces:</strong> Diagnostic plots in <code>output/ica/</code> + <code>data/processed/P01_stroop_ica_raw.fif</code></p>
 
 <hr />
 
@@ -726,15 +787,62 @@ python3 scripts/04_epochs.py P01 nback
 
 <p><strong>Components extracted:</strong></p>
 
-<div style="font-size: 85%;">
+<div style="font-size: 80%;">
 
-| Component | Window | Electrode | Electrode location and neural source | Cognitive process | Type |
-|---|---|---|---|---|---|
-| **N200** | 200–350 ms | FC1+FC2 (virtual FCz) | Frontocentral scalp, overlying anterior cingulate cortex (BA 24/32) and dorsolateral prefrontal cortex (BA 9/46) | Conflict monitoring between ink colour and word meaning; response selection | Primary |
-| **P300** | 300–600 ms | Pz | Parietal midline, overlying temporo-parietal junction (BA 39/40) and hippocampus | Context updating — the brain finalises its decision and updates working memory | Primary |
-| **P3b** | 300–600 ms | Pz | Same as P300 | Peak latency only — compared with P300 latency to assess whether P3b drives the latency difference | Primary (latency only) |
-| **N1** | 80–160 ms | FC1+FC2 (virtual FCz) | Frontocentral, overlying frontal eye fields (BA 6/8) and supplementary motor area | Early attentional gating — how much resource the brain directed to the stimulus at onset | Exploratory |
-| **CSW** | 400–700 ms | FC1+FC2 (virtual FCz) | Frontocentral, overlying ACC and lateral PFC | Conflict slow wave — sustained frontal engagement during incongruent trial resolution | Exploratory |
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Window</th>
+  <th>Electrode</th>
+  <th>Electrode location and neural source</th>
+  <th>Cognitive process</th>
+  <th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>N200</strong></td>
+  <td>200–350 ms</td>
+  <td>FC1+FC2 (virtual FCz)</td>
+  <td>Frontocentral scalp, overlying anterior cingulate cortex (BA 24/32) and dorsolateral prefrontal cortex (BA 9/46)</td>
+  <td>Conflict monitoring between ink colour and word meaning; response selection</td>
+  <td>Primary</td>
+</tr>
+<tr>
+  <td><strong>P300</strong></td>
+  <td>300–600 ms</td>
+  <td>Pz</td>
+  <td>Parietal midline, overlying temporo-parietal junction (BA 39/40) and hippocampus</td>
+  <td>Context updating — the brain finalises its decision and updates working memory</td>
+  <td>Primary</td>
+</tr>
+<tr>
+  <td><strong>P3b</strong></td>
+  <td>300–600 ms</td>
+  <td>Pz</td>
+  <td>Same as P300</td>
+  <td>Peak latency only — compared with P300 latency to assess whether P3b drives the latency difference</td>
+  <td>Primary (latency only)</td>
+</tr>
+<tr>
+  <td><strong>N1</strong></td>
+  <td>80–160 ms</td>
+  <td>FC1+FC2 (virtual FCz)</td>
+  <td>Frontocentral, overlying frontal eye fields (BA 6/8) and supplementary motor area</td>
+  <td>Early attentional gating — how much resource the brain directed to the stimulus at onset</td>
+  <td>Exploratory</td>
+</tr>
+<tr>
+  <td><strong>CSW</strong></td>
+  <td>400–700 ms</td>
+  <td>FC1+FC2 (virtual FCz)</td>
+  <td>Frontocentral, overlying ACC and lateral PFC</td>
+  <td>Conflict slow wave — sustained frontal engagement during incongruent trial resolution</td>
+  <td>Exploratory</td>
+</tr>
+</tbody>
+</table>
 
 </div>
 
@@ -764,16 +872,70 @@ python3 scripts/04_epochs.py P01 nback
 
 <p><strong>Components extracted:</strong></p>
 
-<div style="font-size: 85%;">
+<div style="font-size: 80%;">
 
-| Component | Window | Electrode | Electrode location and neural source | Cognitive process | Type |
-|---|---|---|---|---|---|
-| **N200** | 200–350 ms | FC1+FC2 (virtual FCz) | Frontocentral, overlying anterior cingulate cortex (BA 24/32) and dorsolateral PFC (BA 9/46) | Working memory updating — matching current letter against memory buffer and preparing response | Primary |
-| **P300** | 300–600 ms | Pz | Parietal midline, overlying temporo-parietal junction (BA 39/40) and hippocampus | Context updating — decision finalised, WM buffer updated | Primary |
-| **P3b** | 300–600 ms | Pz | Same as P300 | Peak latency only | Primary (latency only) |
-| **N1** | 80–160 ms | FC1+FC2 (virtual FCz) | Frontocentral, overlying frontal eye fields (BA 6/8) | Early attentional gating at stimulus onset | Exploratory |
-| **P2** | 150–250 ms | Pz | Parietal midline, overlying superior parietal lobule (BA 7) and fusiform gyrus (BA 37) | Early stimulus classification — letter identity recognised, comparison against WM template begins | Exploratory |
-| **FSW** | 200–500 ms | Fz | Frontal midline, overlying medial PFC (BA 9/10) and anterior cingulate cortex (BA 24/32) | Frontal slow wave — sustained WM maintenance load; active holding of information in WM buffer | Exploratory |
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Window</th>
+  <th>Electrode</th>
+  <th>Electrode location and neural source</th>
+  <th>Cognitive process</th>
+  <th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>N200</strong></td>
+  <td>200–350 ms</td>
+  <td>FC1+FC2 (virtual FCz)</td>
+  <td>Frontocentral, overlying anterior cingulate cortex (BA 24/32) and dorsolateral PFC (BA 9/46)</td>
+  <td>Working memory updating — matching current letter against memory buffer and preparing response</td>
+  <td>Primary</td>
+</tr>
+<tr>
+  <td><strong>P300</strong></td>
+  <td>300–600 ms</td>
+  <td>Pz</td>
+  <td>Parietal midline, overlying temporo-parietal junction (BA 39/40) and hippocampus</td>
+  <td>Context updating — decision finalised, WM buffer updated</td>
+  <td>Primary</td>
+</tr>
+<tr>
+  <td><strong>P3b</strong></td>
+  <td>300–600 ms</td>
+  <td>Pz</td>
+  <td>Same as P300</td>
+  <td>Peak latency only</td>
+  <td>Primary (latency only)</td>
+</tr>
+<tr>
+  <td><strong>N1</strong></td>
+  <td>80–160 ms</td>
+  <td>FC1+FC2 (virtual FCz)</td>
+  <td>Frontocentral, overlying frontal eye fields (BA 6/8)</td>
+  <td>Early attentional gating at stimulus onset</td>
+  <td>Exploratory</td>
+</tr>
+<tr>
+  <td><strong>P2</strong></td>
+  <td>150–250 ms</td>
+  <td>Pz</td>
+  <td>Parietal midline, overlying superior parietal lobule (BA 7) and fusiform gyrus (BA 37)</td>
+  <td>Early stimulus classification — letter identity recognised, comparison against WM template begins</td>
+  <td>Exploratory</td>
+</tr>
+<tr>
+  <td><strong>FSW</strong></td>
+  <td>200–500 ms</td>
+  <td>Fz</td>
+  <td>Frontal midline, overlying medial PFC (BA 9/10) and anterior cingulate cortex (BA 24/32)</td>
+  <td>Frontal slow wave — sustained WM maintenance load; active holding of information in WM buffer</td>
+  <td>Exploratory</td>
+</tr>
+</tbody>
+</table>
 
 </div>
 
@@ -862,7 +1024,7 @@ python3 scripts/04_epochs.py P01 nback
 
 <p><strong>Windows:</strong></p>
 
-<pre><code>cd C:\Users\SK\eeg_analysis
+<pre><code>cd C:\Users\yourname\eeg_analysis
 .venv\Scripts\activate
 python run_pipeline.py --task stroop
 python run_pipeline.py --task nback
@@ -870,7 +1032,7 @@ python run_pipeline.py --task nback
 
 <p><strong>Mac:</strong></p>
 
-<pre><code>cd /Users/SK/eeg_analysis
+<pre><code>cd /Users/yourname/eeg_analysis
 source .venv/bin/activate
 python3 run_pipeline.py --task stroop
 python3 run_pipeline.py --task nback
@@ -1254,7 +1416,7 @@ python3 run_pipeline.py --task nback P01 P02 P04
 <h3 id="participants">Participants</h3>
 
 <ul>
-<li>8 participants: 4 in Group 1 (P01–P04), 4 in Group 2 (P05–P08)</li>
+<li>Any number of participants split across two groups</li>
 <li>Between-subjects design</li>
 </ul>
 

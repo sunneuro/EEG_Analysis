@@ -7,7 +7,7 @@ def main():
     with open('README.md', 'r', encoding='utf-8') as f:
         md = f.read()
     
-    html = markdown2.markdown(md, extras=["tables", "fenced-code-blocks", "header-ids"])
+    html = markdown2.markdown(md, extras=["tables", "fenced-code-blocks", "header-ids", "markdown-in-html"])
     
     css = """
     <style>
@@ -29,6 +29,7 @@ def main():
       table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; }
       table tr:nth-child(2n) { background-color: #f6f8fa; }
       blockquote { padding: 0 1em; color: #6a737d; border-left: .25em solid #dfe2e5; margin: 0; }
+      img { max-width: 100%; height: auto; page-break-inside: avoid; }
     </style>
     """
     

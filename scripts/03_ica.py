@@ -257,6 +257,7 @@ for fig_num, ic_group in enumerate(ic_groups):
         ax_ts.spines['top'].set_visible(False)
         ax_ts.spines['right'].set_visible(False)
         ax_ts.set_xlim(times[0], times[-1])
+        ax_ts.set_ylim(-6, 6)
 
         if row_idx == n_rows - 1:
             ax_ts.set_xlabel('Time (s)', fontsize=9)
@@ -306,8 +307,8 @@ print(f"  When in doubt                                   -> keep")
 print()
 
 user_input = input(
-    "Enter component numbers to remove (comma-separated),\n"
-    "or press Enter to accept ICLabel suggestion,\n"
+    "Enter the FINAL list of component numbers to remove (comma-separated),\n"
+    "or press Enter to accept the automatic ICLabel suggestion as-is,\n"
     "or type 'none' to remove nothing: "
 ).strip()
 

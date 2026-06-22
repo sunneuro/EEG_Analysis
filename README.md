@@ -81,7 +81,7 @@ Before installing or running anything, you need to open a terminal — the text-
 1. Press the **Windows key** on your keyboard
 2. Type `cmd` in the search bar
 3. Click **Command Prompt** in the results
-4. A black window will open with a prompt like `C:\Users\SK>`
+4. A black window will open with a prompt like `C:\Users\yourname>`
 
 **Windows — PowerShell (alternative, also works):**
 1. Press the **Windows key**
@@ -92,7 +92,7 @@ Before installing or running anything, you need to open a terminal — the text-
 1. Press **Command (⌘) + Space** to open Spotlight search
 2. Type `terminal`
 3. Press **Enter** or click **Terminal** in the results
-4. A window will open with a prompt like `SK@MacBook ~ %`
+4. A window will open with a prompt like `yourname@MacBook ~ %`
 
 > **Keep this window open** — all commands in this guide are typed here.
 
@@ -138,14 +138,14 @@ A virtual environment is an isolated space where you install packages for this p
 
 **Windows — create and activate:**
 ```
-cd C:\Users\SK\eeg_analysis
+cd C:\Users\yourname\eeg_analysis
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
 **Mac — create and activate:**
 ```
-cd /Users/SK/eeg_analysis
+cd /Users/yourname/eeg_analysis
 python3 -m venv .venv
 source .venv/bin/activate
 ```
@@ -213,8 +213,8 @@ You should see a version number printed (e.g. `1.6.0`).
 
 Download or clone this repository to your computer. Place the folder wherever you want your project to live, for example:
 
-- **Windows:** `C:\Users\SK\eeg_analysis\`
-- **Mac:** `/Users/SK/eeg_analysis/`
+- **Windows:** `C:\Users\yourname\eeg_analysis\`
+- **Mac:** `/Users/yourname/eeg_analysis/`
 
 ### Step 2 — Navigate to your project folder
 
@@ -222,12 +222,12 @@ Before running any script, you must navigate your terminal to the project folder
 
 **Windows:**
 ```
-cd C:\Users\SK\eeg_analysis
+cd C:\Users\yourname\eeg_analysis
 ```
 
 **Mac:**
 ```
-cd /Users/SK/eeg_analysis
+cd /Users/yourname/eeg_analysis
 ```
 
 > **What is `cd`?** It stands for "change directory" — it moves you into a folder. Replace the path shown with the actual location of your project folder on your computer.
@@ -406,6 +406,16 @@ Use underscores only — spaces in filenames cause errors. Keep `.edat2` files i
 | `age` | 24 |
 | `sex` | M or F |
 
+### 6.4 outliers.csv — `data/` (Optional)
+
+Create an `outliers.csv` file in the `data/` directory to explicitly flag specific participants to be excluded from certain conditions during the statistical analysis.
+
+| Column | Example | Description |
+|---|---|---|
+| `participant_id` | P01 | The participant to exclude |
+| `task` | stroop | The task (stroop or nback) |
+| `condition` | incongruent/correct | The specific condition to exclude them from (or `all` to exclude from all conditions) |
+
 ---
 
 ## 7. Pipeline Overview
@@ -533,7 +543,37 @@ python3 scripts/03_ica.py P01 nback
 
 Eye blink components show frontal scalp distribution and sharp deflections every few seconds. Muscle artefacts show lateral scalp distributions with high-frequency bursts.
 
-**Produces:** Diagnostic plots in `output/erp/` + `data/processed/P01_stroop_ica_raw.fif`
+![Example ICA Diagnostic Plot](example_ica_plot.png)
+*(In this example: **IC00** is a classic eye blink, **IC04** is a muscle artifact with a focal edge, and **IC01/IC03** show typical dipolar brain activity. Eye movements would appear similarly to eye blinks but asymmetric across the frontal channels).*
+
+The script will pause and prompt you in the terminal to enter your decision based on the ICLabel suggestions and your visual inspection:
+
+```text
+============================================================
+STEP 7: YOUR DECISION
+============================================================
+
+Open component figures in Finder to inspect:
+  output/ica/P01_stroop_ica_components_00_05.png
+  output/ica/P01_stroop_ica_components_06_11.png
+  ...
+
+ICLabel automatic suggestion: remove [0, 2, 4, 7, 21]
+
+Reminder - what to look for:
+  Frontal bilateral blob (Fp1/Fp2) = eye blink    -> remove
+  Asymmetric frontal               = eye movement -> remove
+  Focal edge (temporal/frontal)    = muscle       -> consider removing
+  Regular rhythmic pulses          = heartbeat    -> remove
+  Smooth dipolar gradient          = brain        -> keep
+  When in doubt                                   -> keep
+
+Enter the FINAL list of component numbers to remove (comma-separated),
+or press Enter to accept the automatic ICLabel suggestion as-is,
+or type 'none' to remove nothing: 
+```
+
+**Produces:** Diagnostic plots in `output/ica/` + `data/processed/P01_stroop_ica_raw.fif`
 
 ---
 
@@ -581,7 +621,7 @@ Repeat for P02 through P08, or use the pipeline runner (Section 9).
 
 **Components extracted:**
 
-<div style="font-size: 85%;">
+<div markdown="1" style="font-size: 80%;">
 
 | Component | Window | Electrode | Electrode location and neural source | Cognitive process | Type |
 |---|---|---|---|---|---|
@@ -619,7 +659,7 @@ python3 scripts/05_erp.py --task nback P01
 
 **Components extracted:**
 
-<div style="font-size: 85%;">
+<div markdown="1" style="font-size: 80%;">
 
 | Component | Window | Electrode | Electrode location and neural source | Cognitive process | Type |
 |---|---|---|---|---|---|
@@ -717,7 +757,7 @@ python3 scripts/07_statistics.py --task nback
 
 **Windows:**
 ```
-cd C:\Users\SK\eeg_analysis
+cd C:\Users\yourname\eeg_analysis
 .venv\Scripts\activate
 python run_pipeline.py --task stroop
 python run_pipeline.py --task nback
@@ -725,7 +765,7 @@ python run_pipeline.py --task nback
 
 **Mac:**
 ```
-cd /Users/SK/eeg_analysis
+cd /Users/yourname/eeg_analysis
 source .venv/bin/activate
 python3 run_pipeline.py --task stroop
 python3 run_pipeline.py --task nback
@@ -961,7 +1001,7 @@ If fewer than 20 trials per condition, ERP averages will be unstable. This parti
 ## 13. Study Design Reference
 
 ### Participants
-- 8 participants: 4 in Group 1 (P01–P04), 4 in Group 2 (P05–P08)
+- Any number of participants split across two groups
 - Between-subjects design
 
 ### EEG recording

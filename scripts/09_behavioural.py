@@ -29,12 +29,14 @@ def run_nback():
     if participants is not None:
         group_map = dict(zip(participants['participant_id'], participants['group']))
         unique_groups = sorted([g for g in participants['group'].dropna().unique()])
-        g1, g2 = unique_groups if len(unique_groups) == 2 else (g1, g2)
+        g1, g2 = unique_groups if len(unique_groups) == 2 else ('group1', 'group2')
     else:
         group_map = {}
-        g1, g2 = g1, g2
+        g1, g2 = 'group1', 'group2'
         
     groups = [g1, g2]
+    group_labels = {g1: g1.capitalize(), g2: g2.capitalize()}
+    group_colours = {g1: '#185FA5', g2: '#A32D2D'}
     bar_styles    = {
         g1:  {'facecolor':'#DDDDDD','edgecolor':'#333333',
                      'linewidth':2.5,'linestyle':':'},
@@ -875,12 +877,14 @@ def run_stroop():
     if participants is not None:
         group_map = dict(zip(participants['participant_id'], participants['group']))
         unique_groups = sorted([g for g in participants['group'].dropna().unique()])
-        g1, g2 = unique_groups if len(unique_groups) == 2 else (g1, g2)
+        g1, g2 = unique_groups if len(unique_groups) == 2 else ('group1', 'group2')
     else:
         group_map = {}
-        g1, g2 = g1, g2
+        g1, g2 = 'group1', 'group2'
         
     groups = [g1, g2]
+    group_labels = {g1: g1.capitalize(), g2: g2.capitalize()}
+    group_colours = {g1: '#185FA5', g2: '#A32D2D'}
     bar_styles    = {
         g1:  {'facecolor':'#DDDDDD','edgecolor':'#333333',
                      'linewidth':2.5,'linestyle':':'},

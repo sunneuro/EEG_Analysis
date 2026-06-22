@@ -1,6 +1,6 @@
-# scripts/03_import_filter_eeg.py
+# scripts/02_import_filter_eeg.py
 # ─────────────────────────────────────────────────────────────────────────────
-# STEP 1 OF EEG PREPROCESSING: Import raw EEG and filter
+# STEP 2 OF EEG PREPROCESSING: Import raw EEG and filter
 #
 # What this script does:
 #   1. Loads the raw BrainVision EEG file (.vhdr / .vmrk / .eeg)
@@ -10,7 +10,7 @@
 #   5. Applies bandpass filter: 0.1–40 Hz (FIR, Hamming window)
 #   6. Applies notch filter: 50 Hz + 100 Hz harmonic (UK mains)
 #   7. Prints event summary (trigger codes from E-Prime)
-#   8. Saves filtered data as .fif for script 04
+#   8. Saves filtered data as .fif for script 03
 #
 # Filter rationale (consistent with Luck & Kappenman 2012):
 #   0.1 Hz highpass : removes slow DC drift and sweat artefacts
@@ -27,11 +27,11 @@
 #   Hardware filter: DC–140 Hz, no notch (applied here in software)
 #
 # Usage:
-#   python3 scripts/03_import_filter_eeg.py <participant_id> <task> <vhdr_file>
+#   python3 scripts/02_import_filter_eeg.py <participant_id> <task> <vhdr_file>
 #
 # Example:
-#   python3 scripts/03_import_filter_eeg.py P01 stroop JD_Stroop_22_05_2026.vhdr
-#   python3 scripts/03_import_filter_eeg.py P02 nback  AB_nback_25_05_2026.vhdr
+#   python3 scripts/02_import_filter_eeg.py P01 stroop JD_Stroop_22_05_2026.vhdr
+#   python3 scripts/02_import_filter_eeg.py P02 nback  AB_nback_25_05_2026.vhdr
 #
 # Input  : data/raw/<vhdr_file>
 # Output : data/processed/<participant_id>_<task>_filtered_raw.fif
@@ -44,9 +44,9 @@ from datetime import datetime
 
 # ── Command-line arguments ────────────────────────────────────────────────────
 if len(sys.argv) != 4:
-    print("Usage: python3 scripts/03_import_filter_eeg.py "
+    print("Usage: python3 scripts/02_import_filter_eeg.py "
           "<participant_id> <task> <vhdr_filename>")
-    print("Example: python3 scripts/03_import_filter_eeg.py "
+    print("Example: python3 scripts/02_import_filter_eeg.py "
           "P01 stroop JD_Stroop_22_05_2026.vhdr")
     sys.exit(1)
 
@@ -175,4 +175,4 @@ print(f"\nFiltering applied:")
 print(f"  Bandpass : {HIGHPASS_HZ}–{LOWPASS_HZ} Hz (FIR, Hamming)")
 print(f"  Notch    : {NOTCH_HZ} Hz")
 print(f"  Channels : {len(raw.ch_names)} (31 recorded + Cz re-added)")
-print(f"\nNext: python3 scripts/04_ica.py {participant_id} {task}")
+print(f"\nNext: python3 scripts/03_ica.py {participant_id} {task}")

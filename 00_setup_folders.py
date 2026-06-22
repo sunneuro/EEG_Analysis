@@ -264,21 +264,19 @@ FOLDER_INSTRUCTIONS = {
         'instructions': [
             'All pipeline scripts should be placed here.',
             'Required scripts:',
-            '  01_parse_eprime_nback.py',
-            '  02_parse_eprime_stroop.py',
-            '  03_import_filter_eeg.py',
-            '  04_ica.py',
-            '  05_epochs.py',
-            '  06_erp_stroop.py',
-            '  06_erp_nback.py',
-            '  07_group_erp_stroop.py',
-            '  07_group_erp_nback.py',
-            '  08_statistics_stroop.py',
-            '  08_statistics_nback.py',
-            '  run_stroop_pipeline.py',
-            '  run_nback_pipeline.py',
+            '  01_parse_eprime.py',
+            '  02_import_filter_eeg.py',
+            '  03_ica.py',
+            '  04_epochs.py',
+            '  05_erp.py',
+            '  06_group_erp.py',
+            '  07_statistics.py',
+            '  08_EEG_variation.py',
+            '  09_behavioural.py',
+            '  run_pipeline.py',
+            '  run_pipeline.sh',
             '',
-            'Pipeline runner scripts (run_*.py) should be placed in the',
+            'Pipeline runner scripts (run_pipeline.py) should be placed in the',
             'PROJECT ROOT — not inside scripts/ folder.',
         ],
     },
@@ -531,8 +529,8 @@ def mode_create():
      If auto-copy ran successfully above — already done.
      If any scripts were missing or copy failed, copy them manually:
        Scripts 01–08 : {project_root / 'scripts'}/
-       Runner scripts: {project_root}/run_stroop_pipeline.py
-                       {project_root}/run_nback_pipeline.py
+       Runner scripts: {project_root}/run_pipeline.py
+                       {project_root}/run_pipeline.sh
                        {project_root}/00_setup_folders.py
 
   {BOLD}2. Copy raw EEG files into:{NC}
@@ -573,8 +571,8 @@ def mode_create():
 
   {BOLD}5. Run the pipeline from the project root:{NC}
      cd {project_root}
-     python run_stroop_pipeline.py
-     python run_nback_pipeline.py
+     python run_pipeline.py --task stroop
+     python run_pipeline.py --task nback
 
   {BOLD}6. For detailed file format instructions, run:{NC}
      python 00_setup_folders.py  → choose option [3] Instructions
@@ -885,6 +883,8 @@ def mode_check():
     if scripts_dir.exists():
         print()
         for script in EXPECTED_SCRIPTS:
+            if script.startswith('run_'):
+                continue
             spath = scripts_dir / script
             if spath.exists():
                 tick(f"Found   : scripts/{script}")
@@ -894,7 +894,7 @@ def mode_check():
 
         # Check runner scripts in root
         print()
-        for runner in ['run_stroop_pipeline.py', 'run_nback_pipeline.py']:
+        for runner in ['run_pipeline.py', 'run_pipeline.sh']:
             rpath = project_root / runner
             if rpath.exists():
                 tick(f"Found   : {runner}  (project root)")
@@ -915,8 +915,8 @@ def mode_check():
         print(f"  Pipeline can be run from: {project_root}")
         print(f"\n  Start with:")
         print(f"    cd {project_root}")
-        print(f"    python run_stroop_pipeline.py")
-        print(f"    python run_nback_pipeline.py")
+        print(f"    python run_pipeline.py --task stroop")
+        print(f"    python run_pipeline.py --task nback")
 
     elif issues:
         print(f"  {RED}{BOLD}✗ NOT READY — {len(issues)} issue(s) must be resolved:{NC}")

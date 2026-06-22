@@ -7,7 +7,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy import stats
-from statsmodels.stats.multitest import multipletests
 from pathlib import Path
 from datetime import datetime
 
@@ -66,15 +65,7 @@ cond_labels_stroop = {
     'no_response':         'No response',
 }
 
-group_linestyles = {'control':':','creatine':'-'}
-group_labels = {'control':'Control','creatine':'Creatine'}
 
-bar_styles = {
-    'control':  {'facecolor':'#DDDDDD','edgecolor':'#333333',
-                 'linewidth':2.5,'linestyle':':'},
-    'creatine': {'facecolor':'#AAAAAA','edgecolor':'#333333',
-                 'linewidth':2.5,'linestyle':'-'},
-}
 
 IND_LW = 1.2
 IND_ALPHA = 0.45
@@ -382,7 +373,7 @@ def main():
             
             t_val, tp, u, up, d = run_tests(g1_vals, g2_vals)
             
-            for gi, (grp, vals) in enumerate([('control', g1_vals), ('creatine', g2_vals)]):
+            for gi, (grp, vals) in enumerate([(g1, g1_vals), (g2, g2_vals)]):
                 m   = np.mean(vals) if len(vals) > 0 else np.nan
                 sem = np.std(vals, ddof=1)/np.sqrt(len(vals)) if len(vals) > 1 else 0
                 sty = bar_styles[grp]
@@ -659,7 +650,7 @@ def main():
     if last_diff_im is not None:
         cax_diff = fig.add_axes([0.55, cb_bottom + 0.04, 0.35, cb_height])
         cb_diff  = fig.colorbar(last_diff_im, cax=cax_diff, orientation='horizontal')
-        cb_diff.set_label('Difference amplitude (µV)\nOrange = {group_labels[g2]} larger   |   Purple = {group_labels[g1]} larger', fontsize=11)
+        cb_diff.set_label(f'Difference amplitude (µV)\nOrange = {group_labels[g2]} larger   |   Purple = {group_labels[g1]} larger', fontsize=11)
         cb_diff.ax.tick_params(labelsize=10)
 
     fig.text(0.5, 0.98, f"{task.upper()} — Group comparison topomaps\nShared amplitude scale (±{vmax_amp:.1f} µV) and difference scale (±{vmax_diff:.1f} µV)", fontsize=14, fontweight='bold', ha='center', va='top')

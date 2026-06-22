@@ -12,22 +12,22 @@ from pathlib import Path
 from datetime import datetime
 
 # ── Config ──────────────────────────────────────────────────────────────────
-OUTLIER_FLAGS = {
-    'nback': {
-        ('P08', 'target/hit'):              'low_trials_n5',
-        ('P08', 'target/miss'):             'low_trials_n11',
-        ('P05', 'target/hit'):              'low_trials_n33_reversed_sensitivity',
-        ('P06', 'target/hit'):              'low_trials_n32',
-        ('P07', 'target/miss'):             'high_miss_rate_n59',
-        ('P03', 'target/miss'):             'high_miss_rate_n81',
-        ('P04', 'all'):                     'low_snr_noisy_baseline',
-    },
-    'stroop': {
-        ('P03', 'all'):                  'high_miss_rate_reversed_amplitude',
-        ('P05', 'congruent/correct'):    'low_trials_n25',
-        ('P08', 'congruent/correct'):    'low_trials_n6',
-    }
-}
+def load_outlier_flags(task):
+    flags = {}
+    outliers_file = Path('data/outliers.csv')
+    if outliers_file.exists():
+        try:
+            df = pd.read_csv(outliers_file)
+            if 'task' in df.columns:
+                df = df[df['task'] == task]
+            for _, row in df.iterrows():
+                pid = row['participant_id']
+                cond = row.get('condition', 'all')
+                flag = row.get('flag', 'outlier_from_csv')
+                flags[(pid, cond)] = flag
+        except Exception as e:
+            print(f"  ⚠ Could not load outliers.csv: {e}")
+    return flags
 
 primary_components_nback = {
     'N200': {'tmin':0.200,'tmax':0.350,'electrode':'FC1+FC2','polarity':-1,
@@ -120,10 +120,11 @@ def main():
 
     MIN_TRIALS = 20
 
+    outlier_flags = load_outlier_flags(task)
+
     def get_outlier_flag(pid, cond, n):
-        flags = OUTLIER_FLAGS[task]
-        if (pid, 'all')  in flags: return flags[(pid, 'all')]
-        if (pid, cond)   in flags: return flags[(pid, cond)]
+        if (pid, 'all')  in outlier_flags: return outlier_flags[(pid, 'all')]
+        if (pid, cond)   in outlier_flags: return outlier_flags[(pid, cond)]
         if n < MIN_TRIALS:                 return f'low_trials_n{n}'
         return ''
 

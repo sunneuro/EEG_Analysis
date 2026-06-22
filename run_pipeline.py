@@ -34,7 +34,16 @@ BLUE   = '\033[0;34m'
 BOLD   = '\033[1m'
 NC     = '\033[0m'
 
-ALL_PARTICIPANTS = ['P01','P02','P03','P04','P05','P06','P07','P08']
+import pandas as pd
+
+def get_participants():
+    try:
+        df = pd.read_csv('data/participants.csv')
+        return df['participant_id'].tolist()
+    except:
+        return ['P01','P02','P03','P04','P05','P06','P07','P08']
+
+ALL_PARTICIPANTS = get_participants()
 
 def run_script(script_name, args=None):
     script_path = Path('scripts') / script_name

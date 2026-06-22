@@ -1,33 +1,35 @@
-# scripts/05_epochs.py
+# scripts/04_epochs.py
 # ─────────────────────────────────────────────────────────────────────────────
-# STEP 3 OF EEG PREPROCESSING: Epoching
+# STEP 4 OF EEG PREPROCESSING: Epoching
 #
 # What this script does:
-#   1. Loads ICA-cleaned data from script 04
+#   1. Loads ICA-cleaned data from script 03
 #   2. Extracts events from annotations
-#   3. Creates stimulus-locked epochs for all three Stroop conditions
+#   3. Creates stimulus-locked epochs based on task trigger codes
 #   4. Applies baseline correction (−200 to 0 ms)
 #   5. Rejects epochs exceeding ±75 µV peak-to-peak (artefact rejection)
 #   6. Prints rejection summary — how many trials lost per condition
-#   7. Saves epochs object for ERP analysis in script 06
+#   7. Saves epochs object for ERP analysis in script 05
 #
 # Epoch window: −200 to +800 ms relative to stimulus onset (S3)
 # Baseline    : −200 to 0 ms
 # Rejection   : ±75 µV peak-to-peak across all channels
 #
-# Stroop trigger codes:
-#   S3 (code 3) = stimulus onset — all trials
-#   S5 (code 5) = correct response, Incongruent
-#   S6 (code 6) = correct response, Congruent
-#   S7 (code 7) = no response / timeout
+# Trigger codes and epoching strategy:
+#   Time-lock to stimulus onset (S3)
+#   Label each epoch by the subsequent response code
 #
-# Epoching strategy:
-#   Time-lock to S3 (stimulus onset)
-#   Label each epoch by what followed (S5, S6, or S7)
-#   This gives condition labels at the stimulus level
+#   Stroop:
+#     S5 = correct response, Incongruent
+#     S6 = correct response, Congruent
+#     S7 = no response / timeout
+#   N-back:
+#     S7 = non-target correct
+#     S8 = target hit
+#     S9 = target miss
 #
 # Usage:
-#   python3 scripts/05_epochs.py P01 stroop
+#   python3 scripts/04_epochs.py P01 stroop
 # ─────────────────────────────────────────────────────────────────────────────
 
 import sys
@@ -39,8 +41,8 @@ from datetime import datetime
 
 # ── Command-line arguments ────────────────────────────────────────────────────
 if len(sys.argv) != 3:
-    print("Usage: python3 scripts/05_epochs.py <participant_id> <task>")
-    print("Example: python3 scripts/05_epochs.py P01 stroop")
+    print("Usage: python3 scripts/04_epochs.py <participant_id> <task>")
+    print("Example: python3 scripts/04_epochs.py P01 stroop")
     sys.exit(1)
 
 participant_id = sys.argv[1]
