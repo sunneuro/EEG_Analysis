@@ -134,7 +134,7 @@ You should see `Python 3.11.x` or similar.
 
 ### Virtual Environment (recommended)
 
-A virtual environment is an isolated space where you install packages for this project only, without affecting other Python projects on your computer. Think of it as a clean room dedicated to this pipeline like a mirror dimension used in dr strange movies, whatever happens here does not affect the real world and you can always exit it by typing 'deactivat.
+A virtual environment is an isolated space where you install packages for this project only, without affecting other Python projects on your computer. Think of it as a clean room dedicated to this pipeline like a mirror dimension used in dr strange movies, whatever happens here does not affect the real world and you can always exit it by typing 'deactivate' command.
 
 **Windows — create and activate:**
 ```
