@@ -642,7 +642,10 @@ python scripts/05_erp.py --task stroop P01
 python3 scripts/05_erp.py --task stroop P01
 ```
 
-Repeat for P02 through P08, or use the pipeline runner (Section 9).
+> **💡 Tip: Stop here and use the pipeline runner!**
+> If you have completed the manual steps 01–04 (including ICA review) for **all** participants, you no longer need to run `05_erp.py` or any subsequent scripts manually. 
+> 
+> Jump straight to **[Section 9](#9-running-the-pipeline)** and use `run_pipeline.py --task stroop` to automatically process all participants, generate the group plots, and run all statistical tests in one go!
 
 **Components extracted:**
 
@@ -681,6 +684,9 @@ python scripts/05_erp.py --task nback P01
 ```
 python3 scripts/05_erp.py --task nback P01
 ```
+
+> **💡 Tip: Stop here and use the pipeline runner!**
+> If you have completed the manual steps 01–04 (including ICA review) for **all** participants, jump straight to **[Section 9](#9-running-the-pipeline)** and run `python3 run_pipeline.py --task nback` to automatically finish the rest of the analysis!
 
 **Components extracted:**
 
@@ -779,6 +785,10 @@ python3 scripts/07_statistics.py --task nback
 ## 9. Running the Pipeline
 
 ### Recommended — use the pipeline runners
+
+> **⚠️ CRITICAL TIMING:** Do not run this script until you have manually completed Steps 01 through 04 for all participants! Because `03_ica.py` requires human review, the first half of the pipeline cannot be fully automated. 
+> 
+> Once every participant has an epoched file (`*_epo.fif`), `run_pipeline.py` will automatically execute the rest of the workflow: ERP extraction, group averaging, statistics, and behavioural analysis.
 
 **Windows:**
 ```
