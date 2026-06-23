@@ -1,0 +1,30 @@
+# EEG Analysis Pipeline — Python Dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+# Install all dependencies into your virtual environment with:
+#
+#   pip install -r requirements.txt
+#
+# Python version: 3.9+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Core EEG / signal processing ─────────────────────────────────────────────
+mne>=1.2                  # EEG data import, filtering, ICA, epoching, ERP
+mne-icalabel>=0.6         # Automated ICA component labelling (ICLabel model)
+                          # Used in: scripts/03_ica.py
+onnxruntime               # Required inference backend for mne-icalabel (ICLabel neural network)
+                          # Lightweight alternative to PyTorch (~10 MB vs ~1 GB)
+
+# ── Numerical / scientific computing ─────────────────────────────────────────
+numpy>=1.21
+scipy>=1.4.0
+statsmodels>=0.13        # FDR correction (Benjamini-Hochberg multipletests)
+                          # Used in: scripts/07_statistics.py
+
+# ── Data wrangling ────────────────────────────────────────────────────────────
+pandas>=1.3
+
+# ── Plotting ──────────────────────────────────────────────────────────────────
+matplotlib>=3.6
+
+# ── PDF report generation ─────────────────────────────────────────────────────
+markdown2                 # Used in: scripts/create_pdf.py
