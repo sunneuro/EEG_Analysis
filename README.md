@@ -168,42 +168,67 @@ A library (also called a package or module) is a collection of pre-written code 
 | Library | What it does |
 |---|---|
 | **MNE** | The main EEG analysis library — loads raw data, filters, runs ICA, creates epochs, computes ERPs, plots topomaps |
+| **mne-icalabel** | Automated ICA component classification using the ICLabel neural network — labels components as brain, eye blink, muscle, heartbeat, or noise. Used in `03_ica.py`. **Separate from MNE and must be installed explicitly.** |
+| **onnxruntime** | Inference backend required by `mne-icalabel` to run the ICLabel model. Lightweight (~10 MB). **Must be installed alongside `mne-icalabel` — without it, `03_ica.py` will crash with an `ImportError`.** |
 | **NumPy** | Numerical computing — handles arrays, matrix operations, mathematical functions |
-| **SciPy** | Scientific computing — statistical tests (t-test, Mann-Whitney U) |
+| **SciPy** | Scientific computing — statistical tests (Welch t-test, Mann-Whitney U) |
+| **statsmodels** | Advanced statistical methods — provides the Benjamini-Hochberg FDR correction (`multipletests`) applied to all p-values in `07_statistics.py`. **Separate from SciPy and must be installed explicitly.** |
 | **pandas** | Data tables — loads and saves CSV files, organises behavioural data |
 | **matplotlib** | Plotting — generates all ERP waveform figures and bar charts |
 
-### Installing all libraries at once
+> **Important:** `mne-icalabel` is not included in MNE itself. It is a separate package maintained independently. If you install only `mne`, the ICA script (`03_ica.py`) will fail with a `ModuleNotFoundError` when it reaches the automated classification step.
 
-With your virtual environment activated, run:
+### Recommended — install everything from `requirements.txt`
+
+The project includes a `requirements.txt` file in the project root that lists every dependency. With your virtual environment activated, run this single command:
 
 **Windows:**
 ```
-python -m pip install mne numpy scipy pandas matplotlib
+python -m pip install -r requirements.txt
 ```
 
 **Mac:**
 ```
-python3 -m pip install mne numpy scipy pandas matplotlib
+python3 -m pip install -r requirements.txt
 ```
 
-This downloads and installs everything needed. It may take a few minutes on first run. You only need to do this once.
+This installs all libraries in one step and ensures nothing is missed. You only need to do this once per environment.
 
-To verify the installation worked:
+### Alternative — install libraries individually
+
+If you prefer to install packages one by one, run the following with your virtual environment activated:
 
 **Windows:**
 ```
-python -c "import mne; print(mne.__version__)"
+python -m pip install mne mne-icalabel onnxruntime numpy scipy statsmodels pandas matplotlib
 ```
 
 **Mac:**
 ```
-python3 -c "import mne; print(mne.__version__)"
+python3 -m pip install mne mne-icalabel onnxruntime numpy scipy statsmodels pandas matplotlib
 ```
 
-You should see a version number printed (e.g. `1.6.0`).
+> **Note:** `mne-icalabel`, `onnxruntime`, and `statsmodels` must all be installed individually — none of them are pulled in automatically by the others.
+
+### Verifying the installation
+
+To confirm all key packages installed correctly:
+
+**Windows:**
+```
+python -c "import mne; import mne_icalabel; import statsmodels; print('MNE:', mne.__version__); print('mne-icalabel: OK'); print('statsmodels:', statsmodels.__version__)"
+```
+
+**Mac:**
+```
+python3 -c "import mne; import mne_icalabel; import statsmodels; print('MNE:', mne.__version__); print('mne-icalabel: OK'); print('statsmodels:', statsmodels.__version__)"
+```
+
+You should see version numbers printed with no errors. If you see a `ModuleNotFoundError` for any package, re-run the install command above with your virtual environment activated.
 
 > **What is pip?** `pip` is Python's package manager — it downloads and installs libraries from the internet automatically. It is installed alongside Python.
+
+> **First-run note for `03_ica.py`:** The first time `mne-icalabel` runs, it will automatically download its pre-trained ICLabel model weights from the internet (~a few MB via `pooch`). This requires an internet connection on first use only. The weights are cached locally afterwards. `onnxruntime` is what actually executes this model — it is not optional.
 
 ---
 
